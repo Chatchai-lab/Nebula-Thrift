@@ -2,11 +2,13 @@
 __pycache__/
 *.pyc
 .venv/
+*.egg-info/
 
 # Node
 node_modules/
 dist/
 .env
+.env.local
 
 # Terraform
 .terraform/
@@ -20,3 +22,7 @@ terraform.tfvars
 
 # OS
 .DS_Store
+Thumbs.db
+
+# AWS
+.aws/

@@ -1,0 +1,9 @@
+{
+  "summary": {
+    "total_spend": 1247.83,
+    "identified_savings": 341.20,
+    "active_recommendations": 7,
+    "trend_percentage": -12.3
+  },
+  "note": "Demo data — replace with real API data when provider is connected"
+}

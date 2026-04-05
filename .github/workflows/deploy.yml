@@ -1,1 +1,16 @@
-# CI/CD Pipeline - wird in Phase 5 implementiert
+# Nebula Thrift CI/CD Pipeline
+# Implemented in Phase 5 (Week 9)
+# Steps: Test → Build Frontend → Deploy to S3 → Invalidate CloudFront → Deploy Lambdas
+
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Pipeline steps added in Phase 5
