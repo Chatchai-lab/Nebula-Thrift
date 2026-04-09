@@ -1,4 +1,9 @@
-"""Abstract base class for cloud providers."""
+"""Abstract base class for cloud providers.
+
+All methods are declared `async` so the implementations integrate cleanly with
+FastAPI's event loop. Synchronous SDKs (e.g. boto3) should be wrapped in
+`asyncio.to_thread(...)` inside the concrete provider so they don't block.
+"""
 from abc import ABC, abstractmethod
 
 
@@ -10,12 +15,12 @@ class CloudProvider(ABC):
 
     @abstractmethod
     async def get_cost_data(self, days: int = 30) -> dict:
-        """Retrieve cost data for the specified period."""
+        """Retrieve cost data for the specified period, grouped by service."""
         pass
 
     @abstractmethod
     async def get_usage_metrics(self, resource_id: str) -> dict:
-        """Retrieve usage metrics for a specific resource."""
+        """Retrieve usage metrics (e.g. CPU, network) for a specific resource."""
         pass
 
     @abstractmethod
@@ -24,6 +29,10 @@ class CloudProvider(ABC):
         pass
 
     @abstractmethod
-    async def validate_connection(self) -> bool:
-        """Test if the provider credentials are valid."""
+    async def validate_connection(self) -> dict:
+        """Verify provider credentials.
+
+        Returns a dict describing the authenticated identity (account id,
+        user/role arn, etc.). Raises on failure.
+        """
         pass

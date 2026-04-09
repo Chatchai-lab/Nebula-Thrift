@@ -1,7 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Lightbulb, Calculator, Settings } from 'lucide-react';
+import { LayoutDashboard, Lightbulb, Calculator, Settings, X } from 'lucide-react';
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const location = useLocation();
 
   const menuItems = [
@@ -10,15 +15,27 @@ export function Sidebar() {
     { path: '/simulator', label: 'Savings Simulator', icon: Calculator },
   ];
 
-  return (
-    <div className="w-64 h-screen flex flex-col bg-background border-r border-border">
-      <div className="p-6 border-b border-border">
-        <Link to="/" className="block">
+  const handleNavClick = () => {
+    if (onMobileClose) onMobileClose();
+  };
+
+  const sidebarContent = (
+    <>
+      <div className="p-6 border-b border-border flex items-center justify-between">
+        <Link to="/" className="block" onClick={handleNavClick}>
           <h1 className="font-bold text-xl text-foreground">
             Nebula Thrift
           </h1>
           <p className="text-sm mt-1 text-muted-foreground">AWS Cost Optimization</p>
         </Link>
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={onMobileClose}
+          className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       <nav className="flex-1 p-4">
@@ -29,6 +46,7 @@ export function Sidebar() {
               <li key={item.path}>
                 <Link
                   to={item.path}
+                  onClick={handleNavClick}
                   className={`flex items-center gap-3 px-4 py-3 rounded-md transition-all relative ${
                     isActive
                       ? 'bg-primary/10 text-primary'
@@ -50,6 +68,7 @@ export function Sidebar() {
       <div className="p-4 border-t border-border">
         <Link
           to="/settings"
+          onClick={handleNavClick}
           className={`flex items-center gap-3 px-4 py-3 rounded-md w-full transition-all relative ${
             location.pathname === '/settings'
               ? 'bg-primary/10 text-primary'
@@ -63,6 +82,29 @@ export function Sidebar() {
           <span className="font-medium">Settings</span>
         </Link>
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex w-64 h-screen flex-col bg-background border-r border-border">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Drawer */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={onMobileClose}
+            aria-hidden="true"
+          />
+          <aside className="relative w-64 h-screen flex flex-col bg-background border-r border-border animate-in slide-in-from-left duration-200">
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }
