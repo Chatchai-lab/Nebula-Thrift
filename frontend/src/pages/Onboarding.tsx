@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CheckCircle, Cloud, Loader2, Zap } from 'lucide-react';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 type Step = 1 | 2 | 3;
 type CredentialMode = 'arn' | 'keys';
@@ -31,7 +32,10 @@ export function Onboarding() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 relative">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       {/* Logo */}
       <div className="flex items-center gap-3 mb-10">
         <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center">

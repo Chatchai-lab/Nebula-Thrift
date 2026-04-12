@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Lightbulb, Calculator, Settings, X } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -81,6 +82,9 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           <Settings className="w-5 h-5" />
           <span className="font-medium">Settings</span>
         </Link>
+        <div className="mt-2 px-4">
+          <ThemeToggle />
+        </div>
       </div>
     </>
   );

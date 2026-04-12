@@ -28,7 +28,7 @@ const Register = lazy(() =>
 );
 
 function PageLoader() {
-  return <div style={{ backgroundColor: '#0B0F1A', minHeight: '100vh' }} />;
+  return <div className="min-h-screen bg-background" />;
 }
 
 function withSuspense(Component: React.ComponentType) {

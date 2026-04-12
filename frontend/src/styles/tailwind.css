@@ -11,8 +11,80 @@
    Nebula Thrift — Design Tokens
    ────────────────────────────────────────────── */
 
+/* ── Light Mode (default) ── */
 :root {
-  /* ── Color Palette ── */
+  --background:        #F8FAFC;
+  --foreground:        #0F172A;
+
+  --card:              #FFFFFF;
+  --card-foreground:   #0F172A;
+
+  --popover:           #FFFFFF;
+  --popover-foreground:#0F172A;
+
+  --primary:           #059669;
+  --primary-foreground:#FFFFFF;
+
+  --secondary:         #7C3AED;
+  --secondary-foreground:#FFFFFF;
+
+  --muted:             #F1F5F9;
+  --muted-foreground:  #64748B;
+
+  --accent:            #F1F5F9;
+  --accent-foreground: #0F172A;
+
+  --destructive:       #DC2626;
+  --destructive-foreground: #FFFFFF;
+
+  --warning:           #D97706;
+  --warning-foreground:#FFFFFF;
+
+  --border:            #E2E8F0;
+  --input:             #E2E8F0;
+  --input-background:  #FFFFFF;
+  --switch-background: #CBD5E1;
+  --ring:              #059669;
+
+  /* ── Border Radius ── */
+  --radius: 0.75rem;
+
+  /* ── Chart colors ── */
+  --chart-compute:  #2563EB;
+  --chart-database: #7C3AED;
+  --chart-storage:  #059669;
+  --chart-network:  #D97706;
+  --chart-1:        #2563EB;
+  --chart-2:        #7C3AED;
+  --chart-3:        #059669;
+  --chart-4:        #D97706;
+  --chart-5:        #DC2626;
+
+  /* ── Priority colors ── */
+  --priority-high:   #DC2626;
+  --priority-medium: #D97706;
+  --priority-low:    #059669;
+
+  /* ── Provider brand colors ── */
+  --provider-aws:    #FF9900;
+
+  /* ── Sidebar ── */
+  --sidebar:                    #FFFFFF;
+  --sidebar-foreground:         #0F172A;
+  --sidebar-primary:            #059669;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent:             #F1F5F9;
+  --sidebar-accent-foreground:  #0F172A;
+  --sidebar-border:             #E2E8F0;
+  --sidebar-ring:               #059669;
+
+  /* ── Font ── */
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+}
+
+/* ── Dark Mode ── */
+.dark {
   --background:        #0B0F1A;
   --foreground:        #F8FAFC;
 
@@ -46,10 +118,6 @@
   --switch-background: #1E2A3A;
   --ring:              #34D399;
 
-  /* ── Border Radius ── */
-  --radius: 0.75rem;  /* 12px — Cards */
-
-  /* ── Chart colors ── */
   --chart-compute:  #3B82F6;
   --chart-database: #8B5CF6;
   --chart-storage:  #10B981;
@@ -60,15 +128,12 @@
   --chart-4:        #F59E0B;
   --chart-5:        #EF4444;
 
-  /* ── Priority colors ── */
   --priority-high:   #EF4444;
   --priority-medium: #F59E0B;
   --priority-low:    #10B981;
 
-  /* ── Provider brand colors ── */
   --provider-aws:    #FF9900;
 
-  /* ── Sidebar ── */
   --sidebar:                    #0B0F1A;
   --sidebar-foreground:         #F8FAFC;
   --sidebar-primary:            #34D399;
@@ -77,10 +142,6 @@
   --sidebar-accent-foreground:  #F8FAFC;
   --sidebar-border:             #1E2A3A;
   --sidebar-ring:               #34D399;
-
-  /* ── Font ── */
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
 }
 
 /* ──────────────────────────────────────────────
