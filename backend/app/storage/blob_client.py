@@ -86,3 +86,36 @@ class BlobStorageClient:
             blob_client.delete_blob()
         except Exception:
             pass  # Blob might not exist
+
+    def load_recommendations(self, account_id: str | None = None) -> list[dict]:
+        """Load recommendations from the 'recommendations' container.
+
+        Args:
+            account_id: Optional account ID for namespacing
+        """
+        try:
+            container_client = self.service_client.get_container_client("recommendations")
+            blob_name = f"{account_id}/recommendations.json" if account_id else "recommendations.json"
+            blob_client = container_client.get_blob_client(blob_name)
+            downloader = blob_client.download_blob()
+            return json.loads(downloader.readall())
+        except Exception:
+            return []
+
+    def save_recommendations(self, account_id: str | None, recommendations: list[dict]) -> None:
+        """Save recommendations to the 'recommendations' container.
+
+        Args:
+            account_id: Optional account ID for namespacing
+            recommendations: List of recommendation dicts
+        """
+        try:
+            container_client = self.service_client.get_container_client("recommendations")
+        except Exception:
+            self.service_client.create_container(name="recommendations")
+            container_client = self.service_client.get_container_client("recommendations")
+
+        blob_name = f"{account_id}/recommendations.json" if account_id else "recommendations.json"
+        blob_client = container_client.get_blob_client(blob_name)
+        json_data = json.dumps(recommendations, indent=4)
+        blob_client.upload_blob(json_data, overwrite=True)
