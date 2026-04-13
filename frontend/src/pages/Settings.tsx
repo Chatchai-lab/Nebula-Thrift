@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { RefreshCw, Unplug, Trash2, Bell, AlertTriangle, BarChart2, Sparkles } from 'lucide-react';
+import { useAccount } from '../hooks/useAccount';
+import { api } from '../services/api';
 
 export function Settings() {
   const navigate = useNavigate();
-  const [connected] = useState(false);
+  const { isConnected, accountId, accountName, disconnect } = useAccount();
   const [notifications, setNotifications] = useState({
     anomalyAlerts: true,
     weeklyReport: true,
@@ -22,14 +24,22 @@ export function Settings() {
     }, 1500);
   }
 
-  function handleDisconnect() {
-    toast.info('AWS account disconnected');
+  async function handleDisconnect() {
+    if (accountId) {
+      try {
+        await api.deleteAccount(accountId);
+      } catch (err) {
+        console.warn('Failed to delete account from backend:', err);
+      }
+    }
+    disconnect();
+    toast.info('AWS account disisConnected');
   }
 
   function handleDeleteAccount() {
     setShowDeleteConfirm(false);
-    toast.success('Account deletion requested');
-    setTimeout(() => navigate('/login'), 1500);
+    handleDisconnect();
+    toast.success('Account deleted');
   }
 
   function toggleNotification(key: keyof typeof notifications) {
@@ -52,21 +62,21 @@ export function Settings() {
         <h2 className="text-lg font-semibold text-foreground mb-4">AWS Connection</h2>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className={`w-2.5 h-2.5 rounded-full ${connected ? 'bg-primary' : 'bg-muted-foreground'}`} />
+            <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-primary' : 'bg-muted-foreground'}`} />
             <span className="text-sm font-medium text-foreground">
-              {connected ? 'Connected' : 'Not connected'}
+              {isConnected ? 'Connected' : 'Not isConnected'}
             </span>
             <span
               className={`text-xs px-2 py-0.5 rounded-full border font-medium ${
-                connected
+                isConnected
                   ? 'bg-primary/10 text-primary border-primary/30'
                   : 'bg-muted text-muted-foreground border-border'
               }`}
             >
-              {connected ? 'Active' : 'Demo mode'}
+              {isConnected ? 'Active' : 'Demo mode'}
             </span>
           </div>
-          {connected && (
+          {isConnected && (
             <button
               onClick={handleDisconnect}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-destructive hover:border-destructive/50 transition-all"
@@ -77,10 +87,10 @@ export function Settings() {
           )}
         </div>
 
-        {connected ? (
+        {isConnected ? (
           <div className="text-sm text-muted-foreground space-y-1 mb-4">
-            <p>Account ID: <span className="text-foreground font-mono">123456789012</span></p>
-            <p>Region: <span className="text-foreground">eu-central-1</span></p>
+            <p>Account ID: <span className="text-foreground font-mono">{accountId}</span></p>
+            <p>Account Name: <span className="text-foreground">{accountName}</span></p>
           </div>
         ) : (
           <p className="text-sm text-muted-foreground mb-4">
@@ -89,7 +99,7 @@ export function Settings() {
         )}
 
         <div className="flex items-center gap-3">
-          {connected ? (
+          {isConnected ? (
             <button
               onClick={handleSync}
               disabled={syncing}
@@ -106,7 +116,7 @@ export function Settings() {
               Connect AWS Account →
             </button>
           )}
-          {connected && (
+          {isConnected && (
             <span className="text-xs text-muted-foreground">Last sync: 2 hours ago</span>
           )}
         </div>

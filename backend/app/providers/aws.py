@@ -18,10 +18,14 @@ class AWSProvider(CloudProvider):
         self,
         profile_name: str | None = None,
         region_name: str = "eu-central-1",
+        access_key_id: str | None = None,
+        secret_access_key: str | None = None,
     ):
         self.session = boto3.Session(
             profile_name=profile_name,
             region_name=region_name,
+            aws_access_key_id=access_key_id,
+            aws_secret_access_key=secret_access_key,
         )
         self.sts = self.session.client("sts")
         self.ce = self.session.client("ce", region_name="us-east-1")

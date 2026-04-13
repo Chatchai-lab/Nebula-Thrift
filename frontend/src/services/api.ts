@@ -5,6 +5,9 @@ import type {
   CostBreakdownResponse,
   RecommendationsResponse,
   ConnectionStatusResponse,
+  AWSAccountCreate,
+  AWSAccount,
+  SnapshotResponse,
 } from '../types/api';
 
 const client = axios.create({
@@ -31,4 +34,22 @@ export const api = {
 
   getConnectionStatus: () =>
     client.get<ConnectionStatusResponse>('/api/connection').then((r) => r.data),
+
+  // AWS Account Management
+  registerAccount: (data: AWSAccountCreate) =>
+    client.post<AWSAccount>('/api/accounts', data).then((r) => r.data),
+
+  deleteAccount: (accountId: string) =>
+    client.delete<{ status: string; message: string }>(`/api/accounts/${accountId}`).then((r) => r.data),
+
+  // Snapshots
+  getSnapshot: (accountId: string, days = 30) =>
+    client
+      .get<SnapshotResponse>('/api/snapshots/latest', { params: { account_id: accountId, days } })
+      .then((r) => r.data),
+
+  saveSnapshot: (accountId: string, days = 30) =>
+    client
+      .post<SnapshotResponse>('/api/snapshots/save', null, { params: { account_id: accountId, days } })
+      .then((r) => r.data),
 };

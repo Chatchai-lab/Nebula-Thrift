@@ -7,3 +7,6 @@ pydantic==2.7.0
 pytest==8.2.0
 python-dotenv==1.0.0
 mangum==0.17.0
+azure-storage-blob
+azure-identity
+azure-keyvault-secrets

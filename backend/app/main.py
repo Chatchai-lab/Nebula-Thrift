@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.routers import snapshots, accounts
+
 app = FastAPI(
     title="Nebula Thrift API",
     description="AI-powered Cloud Cost Optimizer",
@@ -14,6 +16,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(snapshots.router)
+app.include_router(accounts.router)
 
 
 @app.get("/health")

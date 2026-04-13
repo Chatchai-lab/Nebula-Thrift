@@ -1,6 +1,7 @@
-import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Lightbulb, Calculator, Settings, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Lightbulb, Calculator, Settings, X, LogOut } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { useAccount } from '../hooks/useAccount';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -9,6 +10,14 @@ interface SidebarProps {
 
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isConnected, disconnect } = useAccount();
+
+  function handleLogout() {
+    disconnect();
+    onMobileClose?.();
+    navigate('/');
+  }
 
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -66,7 +75,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-border space-y-2">
         <Link
           to="/settings"
           onClick={handleNavClick}
@@ -82,6 +91,17 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           <Settings className="w-5 h-5" />
           <span className="font-medium">Settings</span>
         </Link>
+
+        {isConnected && (
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 rounded-md w-full text-muted-foreground hover:bg-muted hover:text-destructive transition-all"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">Logout</span>
+          </button>
+        )}
+
         <div className="mt-2 px-4">
           <ThemeToggle />
         </div>

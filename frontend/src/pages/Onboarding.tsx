@@ -1,28 +1,70 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CheckCircle, Cloud, Loader2, Zap } from 'lucide-react';
+import { CheckCircle, Cloud, Loader2, Zap, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { useAccount } from '../hooks/useAccount';
+import { api } from '../services/api';
 
 type Step = 1 | 2 | 3;
-type CredentialMode = 'arn' | 'keys';
+
+interface ConnectedAccount {
+  account_id: string;
+  region: string;
+}
 
 export function Onboarding() {
   const navigate = useNavigate();
+  const { connect } = useAccount();
   const [step, setStep] = useState<Step>(1);
-  const [credentialMode, setCredentialMode] = useState<CredentialMode>('arn');
-  const [arn, setArn] = useState('');
+  const [accountName, setAccountName] = useState('');
   const [accessKeyId, setAccessKeyId] = useState('');
   const [secretKey, setSecretKey] = useState('');
   const [validating, setValidating] = useState(false);
   const [validated, setValidated] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [connectedAccount, setConnectedAccount] = useState<ConnectedAccount | null>(null);
 
-  function handleValidate() {
+  async function handleValidate() {
+    if (!accountName.trim() || !accessKeyId.trim() || !secretKey.trim()) {
+      setError('Please fill in all fields');
+      return;
+    }
+
     setStep(3);
     setValidating(true);
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      // Register the account with the backend
+      const account = await api.registerAccount({
+        name: accountName,
+        access_key_id: accessKeyId,
+        secret_access_key: secretKey,
+        region: 'eu-central-1',
+      });
+
+      // Save the snapshot so data is available immediately
+      await api.saveSnapshot(account.account_id);
+
+      setConnectedAccount({
+        account_id: account.account_id,
+        region: account.region,
+      });
+
+      // Store in context
+      connect(account.account_id, account.name);
+
       setValidating(false);
       setValidated(true);
-    }, 1500);
+      toast.success('AWS account connected successfully!');
+    } catch (err) {
+      setValidating(false);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to connect AWS account';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setStep(2);
+    }
   }
 
   const steps = [
@@ -122,76 +164,53 @@ export function Onboarding() {
         {step === 2 && (
           <>
             <h2 className="text-xl font-bold text-foreground mb-1">Connect your AWS account</h2>
-            <p className="text-sm text-muted-foreground mb-6">Choose your preferred authentication method</p>
+            <p className="text-sm text-muted-foreground mb-6">Enter your AWS credentials</p>
 
-            {/* Tab Toggle */}
-            <div className="flex rounded-lg border border-border bg-muted/30 p-1 mb-6">
-              <button
-                onClick={() => setCredentialMode('arn')}
-                className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
-                  credentialMode === 'arn'
-                    ? 'bg-card text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                IAM Role ARN
-              </button>
-              <button
-                onClick={() => setCredentialMode('keys')}
-                className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
-                  credentialMode === 'keys'
-                    ? 'bg-card text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Access Keys
-              </button>
-            </div>
+            {error && (
+              <div className="mb-6 p-4 rounded-lg border border-destructive/30 bg-destructive/10 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
+            )}
 
-            {credentialMode === 'arn' ? (
-              <div className="mb-6">
+            <div className="space-y-4 mb-6">
+              <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">
-                  IAM Role ARN
+                  Account Name
                 </label>
                 <input
                   type="text"
-                  value={arn}
-                  onChange={(e) => setArn(e.target.value)}
-                  placeholder="arn:aws:iam::123456789012:role/NebulaCostReader"
+                  value={accountName}
+                  onChange={(e) => setAccountName(e.target.value)}
+                  placeholder="e.g. Production, Development, Testing"
+                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">
+                  Access Key ID
+                </label>
+                <input
+                  type="text"
+                  value={accessKeyId}
+                  onChange={(e) => setAccessKeyId(e.target.value)}
+                  placeholder="AKIAIOSFODNN7EXAMPLE"
                   className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm font-mono"
                 />
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Create a read-only IAM role and paste its ARN here. Nebula Thrift will assume this role to read cost data.
-                </p>
               </div>
-            ) : (
-              <div className="space-y-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">
-                    Access Key ID
-                  </label>
-                  <input
-                    type="text"
-                    value={accessKeyId}
-                    onChange={(e) => setAccessKeyId(e.target.value)}
-                    placeholder="AKIAIOSFODNN7EXAMPLE"
-                    className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">
-                    Secret Access Key
-                  </label>
-                  <input
-                    type="password"
-                    value={secretKey}
-                    onChange={(e) => setSecretKey(e.target.value)}
-                    placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-                    className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm font-mono"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">
+                  Secret Access Key
+                </label>
+                <input
+                  type="password"
+                  value={secretKey}
+                  onChange={(e) => setSecretKey(e.target.value)}
+                  placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm font-mono"
+                />
               </div>
-            )}
+            </div>
 
             <div className="flex gap-3">
               <button
@@ -202,7 +221,8 @@ export function Onboarding() {
               </button>
               <button
                 onClick={handleValidate}
-                className="flex-1 py-2.5 px-4 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-all"
+                disabled={validating}
+                className="flex-1 py-2.5 px-4 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 disabled:opacity-60 transition-all"
               >
                 Validate Connection →
               </button>
@@ -217,16 +237,18 @@ export function Onboarding() {
               <>
                 <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
                 <h2 className="text-xl font-bold text-foreground mb-2">Validating connection…</h2>
-                <p className="text-sm text-muted-foreground">Calling AWS STS to verify your credentials</p>
+                <p className="text-sm text-muted-foreground">Registering your AWS account and fetching initial data</p>
               </>
-            ) : validated ? (
+            ) : validated && connectedAccount ? (
               <>
                 <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
                   <CheckCircle className="w-8 h-8 text-primary" />
                 </div>
                 <h2 className="text-xl font-bold text-foreground mb-2">Connection successful!</h2>
                 <p className="text-sm text-muted-foreground mb-1">AWS Account connected</p>
-                <p className="text-xs text-muted-foreground font-mono mb-8">Account ID: 123456789012 · Region: eu-central-1</p>
+                <p className="text-xs text-muted-foreground font-mono mb-8">
+                  Account ID: {connectedAccount.account_id} · Region: {connectedAccount.region}
+                </p>
                 <button
                   onClick={() => navigate('/dashboard')}
                   className="w-full py-2.5 px-4 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-all"
