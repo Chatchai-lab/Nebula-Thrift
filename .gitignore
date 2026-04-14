@@ -8,6 +8,7 @@ venv/
 # Node
 node_modules/
 dist/
+local.settings.json
 .env
 .env.local
 
@@ -27,6 +28,19 @@ Thumbs.db
 
 # AWS
 .aws/
+
+# Azurite (lokaler Azure Storage Emulator)
+__azurite_db_blob__.json
+__azurite_db_blob_extent__.json
+__azurite_db_queue__.json
+__azurite_db_queue_extent__.json
+__azurite_db_table__.json
+__blobstorage__/
+AzuriteConfig
+
+# Test artifacts
+.coverage
+backend/test_ai.py
 
 # Local planning
 PLAN.md
