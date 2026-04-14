@@ -21,6 +21,7 @@ from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.services.waste_detector import WasteDetector
+from app.services.ai_engine import AIEngine
 from app.models.recommendation import Recommendation
 
 
@@ -151,6 +152,31 @@ def _mock_cosmos_container() -> tuple[MagicMock, MagicMock]:
 
 class TestWasteDetectorToAIEngine:
     """WasteDetector findings can be consumed as-is by AIEngine."""
+
+    def test_format_context_filters_payload(self):
+        """_format_context() reduziert Payload auf nur geschäftskritische Felder."""
+        with patch.dict(os.environ, FAKE_ENV):
+            engine = AIEngine()
+            raw_report = {
+                "resource_id": "i-test",
+                "resource_type": "ec2",
+                "issue": "Idle instance",
+                "estimated_saving": 45.0,
+                "account_id": "123456789012",
+                "extra_field_1": "wird_gefiltert",
+                "extra_field_2": {"nested": "auch_weg"},
+            }
+            filtered = engine._format_context(raw_report)
+
+        # Nur 5 Felder sollten übrig sein
+        assert len(filtered) == 5
+        assert set(filtered.keys()) == {
+            "resource_id", "resource_type", "issue", "estimated_saving", "account_id"
+        }
+        assert filtered["resource_id"] == "i-test"
+        # Extra Felder sind NICHT im gefilterten Output
+        assert "extra_field_1" not in filtered
+        assert "extra_field_2" not in filtered
 
     @pytest.mark.anyio
     async def test_detector_output_has_required_ai_engine_fields(self):
