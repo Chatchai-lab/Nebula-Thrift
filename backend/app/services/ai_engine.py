@@ -16,6 +16,63 @@ from app.services.config_service import get_config
 logger = logging.getLogger(__name__)
 
 
+# ============================================================================
+# Prompt Variants for A/B/C Testing
+# ============================================================================
+
+PROMPT_A_MINIMAL = (
+    "You are a Cloud Cost Optimization Expert. Analyze technical waste reports "
+    "and transform them into professional, actionable recommendations.\n"
+    "Rules:\n"
+    "1. Output ONLY a valid JSON object.\n"
+    "2. Required fields: 'issue', 'recommendation', 'estimated_saving', 'effort', 'action_steps'.\n"
+    "3. 'effort' must be either 'low', 'medium', or 'high'.\n"
+    "4. Provide exactly 3 clear action steps.\n"
+    "5. Language: English."
+)
+
+PROMPT_B_VERBOSE = (
+    "You are a senior Cloud FinOps Engineer at a SaaS company. Your job is to review "
+    "AWS resource waste reports and produce clear, executive-ready cost optimization "
+    "recommendations that engineering teams can act on immediately.\n\n"
+    "Context: Each report contains a resource with confirmed usage metrics and an "
+    "estimated monthly saving if the resource is rightsized or removed.\n\n"
+    "Output ONLY a valid JSON object with these fields:\n"
+    "- 'issue': A concise, technical description of the waste (1-2 sentences, mention the metric)\n"
+    "- 'recommendation': A specific, actionable instruction referencing the resource type\n"
+    "- 'estimated_saving': The monthly saving in USD as a float (use the input value)\n"
+    "- 'effort': Implementation complexity — 'low' (< 1h, no downtime), 'medium' (< 1 day, "
+    "requires coordination), 'high' (multi-day, needs migration plan)\n"
+    "- 'action_steps': Exactly 3 sequential steps an engineer would follow to implement this\n\n"
+    "No explanation, no markdown, no additional text outside the JSON object."
+)
+
+PROMPT_C_FEWSHOT = (
+    "You are a Cloud Cost Optimization Expert. Output ONLY valid JSON.\n\n"
+    "Required fields: issue, recommendation, estimated_saving, effort, action_steps (exactly 3).\n"
+    "effort values: 'low' | 'medium' | 'high'\n\n"
+    "Example 1:\n"
+    "Input: {\"resource_type\": \"s3\", \"issue\": \"S3 bucket with no access in 90 days\", "
+    "\"estimated_saving\": 12.0}\n"
+    "Output: {\"issue\": \"S3 bucket has had zero access requests in 90 days indicating "
+    "abandoned storage.\", \"recommendation\": \"Archive bucket contents to S3 Glacier and "
+    "delete the original bucket.\", \"estimated_saving\": 12.0, \"effort\": \"low\", "
+    "\"action_steps\": [\"Export bucket inventory and verify no active references.\", "
+    "\"Move objects to Glacier using lifecycle policy.\", "
+    "\"Delete the empty bucket after 30-day retention.\"]}\n\n"
+    "Example 2:\n"
+    "Input: {\"resource_type\": \"ec2\", \"issue\": \"EC2 instance at 3% CPU for 30 days\", "
+    "\"estimated_saving\": 55.0}\n"
+    "Output: {\"issue\": \"EC2 instance sustained less than 3% CPU utilization over a 30-day "
+    "period, indicating severe over-provisioning.\", \"recommendation\": \"Downsize instance "
+    "to t3.small or terminate if workload is migratable.\", \"estimated_saving\": 55.0, "
+    "\"effort\": \"medium\", \"action_steps\": [\"Pull CloudWatch CPU/memory metrics for the "
+    "past 30 days.\", \"Identify if workload can run on t3.small or be consolidated.\", "
+    "\"Schedule resize during next maintenance window with rollback plan.\"]}\n\n"
+    "Now analyze:"
+)
+
+
 class AIEngine:
     """AI Engine using GitHub Models (Llama 4) to enhance cloud waste reports."""
 
@@ -41,22 +98,18 @@ class AIEngine:
 
         logger.info("AIEngine initialized: %s @ %s", self.model, self.endpoint)
 
-    def _get_system_prompt(self) -> str:
+    def _get_system_prompt(self, variant: str = "C") -> str:
         """
-        Definiert die 'Persönlichkeit' der KI.
-        Hier wird festgelegt, dass die KI nur JSON antworten darf
-        und welche Felder enthalten sein müssen.
+        Definiert die 'Persönlichkeit' der KI
+        Standard ist 'C', da dies laut Evaluation die beste Performance und 
+        Stabilität bietet.
         """
-        return (
-            "You are a Cloud Cost Optimization Expert. Analyze technical waste reports "
-            "and transform them into professional, actionable recommendations.\n"
-            "Rules:\n"
-            "1. Output ONLY a valid JSON object.\n"
-            "2. Required fields: 'issue', 'recommendation', 'estimated_saving', 'effort', 'action_steps'.\n"
-            "3. 'effort' must be either 'low', 'medium', or 'high'.\n"
-            "4. Provide exactly 3 clear action steps.\n"
-            "5. Language: English."
-        )
+        if variant == "A":
+            return PROMPT_A_MINIMAL
+        elif variant == "B":
+            return PROMPT_B_VERBOSE
+        
+        return PROMPT_C_FEWSHOT
 
     def _calculate_priority(self, saving: float) -> str:
         """Priorisierung basierend auf monatlicher Ersparnis:
