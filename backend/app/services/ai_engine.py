@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import datetime
 from openai import AsyncOpenAI
 from tenacity import (
@@ -6,10 +7,14 @@ from tenacity import (
     stop_after_attempt,
     wait_exponential,
     retry_if_exception_type,
+    before_sleep_log,
 )
 
 from app.models.recommendation import Recommendation
 from app.services.config_service import get_config
+
+logger = logging.getLogger(__name__)
+
 
 class AIEngine:
     """AI Engine using GitHub Models (Llama 4) to enhance cloud waste reports."""
@@ -28,13 +33,13 @@ class AIEngine:
         self.endpoint = config.get("GITHUB_MODEL_ENDPOINT", "https://models.inference.ai.azure.com")
         self.model = config.get("GITHUB_MODEL_NAME", "Llama-4-Scout-17B-16E-Instruct")
 
-        print(f"✅ AIEngine initialized: {self.model} @ {self.endpoint}")
-
         # Client Initialisierung (nutzt OpenAI SDK kompatiblen Endpoint)
         self.client = AsyncOpenAI(
             base_url=self.endpoint,
             api_key=self.token,
         )
+
+        logger.info("AIEngine initialized: %s @ %s", self.model, self.endpoint)
 
     def _get_system_prompt(self) -> str:
         """
@@ -77,7 +82,8 @@ class AIEngine:
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
-        retry=retry_if_exception_type(Exception), 
+        retry=retry_if_exception_type(Exception),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
     )
     async def enhance_recommendation(self, raw_report: dict) -> Recommendation:
         """
@@ -124,6 +130,6 @@ class AIEngine:
                 ai_enhanced=True
             )
         except Exception as e:
-            print(f"❌ AI Parsing Error: {e}. Raw content: {raw_text}")
+            logger.error("AI Parsing Error: %s. Raw content: %.200s", e, raw_text)
             # Fallback oder Exception werfen für Retry
             raise ValueError("AI response could not be parsed into a Recommendation.")

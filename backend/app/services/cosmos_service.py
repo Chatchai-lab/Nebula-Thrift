@@ -1,6 +1,10 @@
+import logging
 from azure.cosmos import CosmosClient
 from app.models.recommendation import Recommendation
 from app.services.config_service import get_config
+
+logger = logging.getLogger(__name__)
+
 
 class CosmosService:
     """Service für Cosmos DB Operationen — nutzt zentrale ConfigService."""
@@ -25,7 +29,7 @@ class CosmosService:
         self.database = self.client.get_database_client(db_name)
         self.container = self.database.get_container_client(container_name)
 
-        print(f"✅ CosmosService initialized: {db_name}.{container_name}")
+        logger.info("CosmosService initialized: %s.%s", db_name, container_name)
 
     async def save_recommendation(self, recommendation: Recommendation):
         """Speichert eine Empfehlung in Cosmos DB."""
@@ -38,7 +42,7 @@ class CosmosService:
         try:
             # upsert_item erstellt das Dokument oder aktualisiert es, falls die ID existiert
             self.container.upsert_item(item)
-            print(f"✅ Empfehlung {item['id']} erfolgreich in Cosmos DB gespeichert.")
+            logger.info("Empfehlung %s erfolgreich in Cosmos DB gespeichert.", item['id'])
         except Exception as e:
-            print(f"❌ Cosmos DB Fehler: {e}")
+            logger.exception("Cosmos DB Fehler")
             raise e

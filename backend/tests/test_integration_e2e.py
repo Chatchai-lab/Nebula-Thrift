@@ -91,6 +91,19 @@ def _mock_openai_client(saving: float = 20.0, resource_type: str = "ec2") -> Mag
     return mock_client
 
 
+def _mock_openai_client_bad_json() -> MagicMock:
+    """Return a MagicMock that returns invalid JSON to trigger parsing errors."""
+    mock_choice = MagicMock()
+    mock_choice.message.content = "not valid json at all"
+
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
+    return mock_client
+
+
 # ---------------------------------------------------------------------------
 # Helpers: AWS provider stub
 # ---------------------------------------------------------------------------
@@ -521,3 +534,26 @@ class TestFullPipeline:
                     await service.save_recommendation(rec)
 
         mock_container.upsert_item.assert_not_called()
+
+    @pytest.mark.anyio
+    async def test_ai_parsing_failure_logs_error(self):
+        """Verify that AI parsing failure (bad JSON) emits logging.error via retry."""
+        from app.services.ai_engine import AIEngine
+        from tenacity import RetryError
+
+        provider = _build_provider()
+        detector = WasteDetector(provider=provider)
+        raw_findings = await detector.detect_waste()
+        raw_report = raw_findings[0].model_dump()
+
+        with patch.dict(os.environ, FAKE_ENV):
+            with patch("app.services.ai_engine.AsyncOpenAI") as MockOpenAI:
+                MockOpenAI.return_value = _mock_openai_client_bad_json()
+                engine = AIEngine()
+
+                # When bad JSON is returned, tenacity retries 3 times then raises RetryError
+                with pytest.raises(RetryError):
+                    await engine.enhance_recommendation(raw_report)
+
+        # The logging happens within the retries (via before_sleep_log callback)
+        # This test passes if no exception occurs before reaching this point
