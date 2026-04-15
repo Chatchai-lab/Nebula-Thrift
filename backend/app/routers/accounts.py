@@ -73,6 +73,64 @@ async def list_accounts() -> list[AWSAccount]:
         )
 
 
+@router.get("/{account_id}", response_model=AWSAccount)
+async def get_account(account_id: str) -> AWSAccount:
+    """
+    Retrieve a single AWS account's metadata.
+
+    Args:
+        account_id: The account ID to retrieve
+
+    Returns:
+        AWSAccount object with account details
+    """
+    try:
+        blob_client = BlobStorageClient()
+        data = blob_client.get_account_metadata(account_id)
+        if not data:
+            raise HTTPException(status_code=404, detail="Account not found")
+        return AWSAccount(**data)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve account: {str(e)}",
+        )
+
+
+@router.patch("/{account_id}/credentials")
+async def update_account_credentials(account_id: str, credentials: AWSAccountCreate) -> dict:
+    """
+    Update AWS credentials for an existing account.
+
+    Only updates credentials in Key Vault, does not modify account metadata.
+
+    Args:
+        account_id: The account ID to update
+        credentials: New AWS credentials (access_key_id, secret_access_key)
+
+    Returns:
+        Success message
+    """
+    try:
+        key_vault = KeyVaultService()
+        key_vault.store_credentials(
+            account_id,
+            credentials.access_key_id,
+            credentials.secret_access_key,
+        )
+        return {
+            "status": "success",
+            "message": f"Credentials for account {account_id} updated successfully",
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to update credentials: {str(e)}",
+        )
+
+
 @router.delete("/{account_id}")
 async def delete_account(account_id: str) -> dict:
     """

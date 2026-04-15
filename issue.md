@@ -1,23 +1,21 @@
-## Phase 5: Prompt-Strategien Evaluation ✅
-
 **Beschreibung:**
-Verschiedene Prompt-Strategien testen und die beste Variante identifizieren.
+Einstellungsseite für AWS Connection, Benachrichtigungen und Account.
 
 **Aufgaben:**
-- [x] Variante A: Minimaler Kontext — nur Regeln und Schema
-- [x] Variante B: Ausführlicher Kontext — Rollenbeschreibung + Field-Semantik
-- [x] Variante C: Few-Shot — Kontext + 2 Beispiel-Empfehlungen
-- [x] Jede Variante mit 3 Testdaten durchlaufen (EC2, RDS, Elastic IP)
-- [x] Qualitätskriterien gemessen: Response Time, Accuracy (saving deviation), Schema Compliance
-
-**Messergebnisse:**
-- **Variante A (Minimal)**: 1.91s avg response, 100% accuracy, 3/3 tests ✅
-- **Variante B (Verbose)**: 2.45s avg response, 100% accuracy, 3/3 tests ✅
-- **Variante C (Few-Shot)**: 1.56s avg response ⭐, 100% accuracy, 3/3 tests ✅
-
-**Gewinner:** Variante C — 36% schneller als B, konsistente beste Performance
+- ✅ AWS Connection: Status Badge (grün/rot), Account ID, Region, Last Sync, "Update Credentials" Button, "Disconnect" Button (rot), "Sync Now" Button
+- ✅ Notifications: Toggles für Anomalie-Alerts, Weekly Report, Neue Empfehlungen, E-Mail-Feld
+- ✅ Account: Name, E-Mail (read-only mit Edit), "Delete Account" (rot, mit Bestätigungs-Modal)
 
 **Akzeptanzkriterien:**
-- [x] Mindestens 3 Varianten getestet und dokumentiert
-- [x] Beste Variante ausgewählt mit Begründung (Variante C: Höchste Response-Performance)
-- [x] Testergebnisse als Markdown dokumentiert → `docs/prompt-evaluation.md` ✅
+- [x] Connection Status zeigt korrekten State (Connected/Disconnected)
+- [x] Toggles speichern den Status (API oder lokal)
+- [x] "Disconnect" zeigt Bestätigungs-Dialog
+- [x] "Sync Now" triggert eine sofortige Datenaktualisierung
+
+**Implementierungsdetails:**
+- Backend: GET /api/accounts/{account_id} endpoint für Account-Details
+- Backend: PATCH /api/accounts/{account_id}/credentials endpoint für Credential-Updates
+- Frontend: useAccount Hook erweitert mit region, email, lastSynced
+- Frontend: useNotificationSettings Hook für Notification-Toggle-Persistierung
+- Frontend: Settings.tsx komplett überarbeitet mit alle Features, Dialoge, und shadcn-Komponenten
+- Frontend: Onboarding.tsx aktualisiert um region beim Connect zu übergeben

@@ -53,7 +53,7 @@ export function Onboarding() {
       });
 
       // Store in context
-      connect(account.account_id, account.name);
+      connect(account.account_id, account.name, account.region);
 
       setValidating(false);
       setValidated(true);

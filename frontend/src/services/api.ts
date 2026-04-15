@@ -39,6 +39,19 @@ export const api = {
   registerAccount: (data: AWSAccountCreate) =>
     client.post<AWSAccount>('/api/accounts', data).then((r) => r.data),
 
+  getAccount: (accountId: string) =>
+    client.get<AWSAccount>(`/api/accounts/${accountId}`).then((r) => r.data),
+
+  updateAccountCredentials: (accountId: string, accessKeyId: string, secretAccessKey: string) =>
+    client
+      .patch<{ status: string; message: string }>(`/api/accounts/${accountId}/credentials`, {
+        access_key_id: accessKeyId,
+        secret_access_key: secretAccessKey,
+        name: '', // Backend only needs the credentials, name is not used
+        region: '', // Same here
+      })
+      .then((r) => r.data),
+
   deleteAccount: (accountId: string) =>
     client.delete<{ status: string; message: string }>(`/api/accounts/${accountId}`).then((r) => r.data),
 
