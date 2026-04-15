@@ -1,4 +1,4 @@
-# Nebula Thrift — AI-powered Cloud Cost Optimizer
+# Nebula Thrift — AI-powered Cloud Cost Optimizer (coming soon)
 
 > Stop the bleed of inefficient cloud spending. Nebula Thrift scans, analyzes, and optimizes your cloud infrastructure in real-time.
 
