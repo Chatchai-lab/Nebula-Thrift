@@ -10,7 +10,7 @@ class TestAuthService:
 
     def test_hash_password(self):
         """Password hashing creates different hashes for same input."""
-        password = "test_password_123"
+        password = "test123"
         hash1 = hash_password(password)
         hash2 = hash_password(password)
 
@@ -22,14 +22,14 @@ class TestAuthService:
 
     def test_verify_password_correct(self):
         """Correct password verifies successfully."""
-        password = "my_secure_password"
+        password = "secure123"
         hashed = hash_password(password)
         assert verify_password(password, hashed) is True
 
     def test_verify_password_incorrect(self):
         """Incorrect password fails verification."""
-        password = "correct_password"
-        wrong_password = "wrong_password"
+        password = "correct123"
+        wrong_password = "wrong123"
         hashed = hash_password(password)
         assert verify_password(wrong_password, hashed) is False
 
@@ -78,12 +78,12 @@ class TestUserModels:
         user = UserCreate(
             name="John Doe",
             email="john@example.com",
-            password="secure_password_123"
+            password="secure123"
         )
 
         assert user.name == "John Doe"
         assert user.email == "john@example.com"
-        assert user.password == "secure_password_123"
+        assert user.password == "secure123"
 
     def test_user_create_invalid_email(self):
         """UserCreate rejects invalid email."""
@@ -91,18 +91,18 @@ class TestUserModels:
             UserCreate(
                 name="John Doe",
                 email="not_an_email",
-                password="secure_password_123"
+                password="secure123"
             )
 
     def test_user_login_model(self):
         """UserLogin model validates email and password."""
         login = UserLogin(
             email="user@example.com",
-            password="password123"
+            password="pass123"
         )
 
         assert login.email == "user@example.com"
-        assert login.password == "password123"
+        assert login.password == "pass123"
 
     def test_user_out_model(self):
         """UserOut model (no password)."""
