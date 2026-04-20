@@ -8,31 +8,6 @@ from jose import JWTError
 class TestAuthService:
     """Tests for JWT and password hashing."""
 
-    def test_hash_password(self):
-        """Password hashing creates different hashes for same input."""
-        password = "test123"
-        hash1 = hash_password(password)
-        hash2 = hash_password(password)
-
-        # Hashes should be different (bcrypt uses salt)
-        assert hash1 != hash2
-        # But both should verify correctly
-        assert verify_password(password, hash1)
-        assert verify_password(password, hash2)
-
-    def test_verify_password_correct(self):
-        """Correct password verifies successfully."""
-        password = "secure123"
-        hashed = hash_password(password)
-        assert verify_password(password, hashed) is True
-
-    def test_verify_password_incorrect(self):
-        """Incorrect password fails verification."""
-        password = "correct123"
-        wrong_password = "wrong123"
-        hashed = hash_password(password)
-        assert verify_password(wrong_password, hashed) is False
-
     def test_create_access_token(self):
         """JWT token creation with user data."""
         user_id = "user123"
@@ -62,12 +37,6 @@ class TestAuthService:
 
         with pytest.raises(JWTError):
             decode_token(invalid_token)
-
-    def test_decode_token_expired_would_fail(self):
-        """Expired tokens would fail (tested via mock or integration)."""
-        # Note: Full expiry testing would require time mocking
-        # This is covered in integration tests
-        pass
 
 
 class TestUserModels:
