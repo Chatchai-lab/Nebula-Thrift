@@ -1,10 +1,18 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Sparkles, TrendingDown, Zap, BarChart3, ArrowRight, Lightbulb, Bell, Menu, X } from 'lucide-react';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { useAuth } from '../hooks/useAuth';
 
 export function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { enterDemoMode } = useAuth();
+  const navigate = useNavigate();
+
+  function handleTryDemo() {
+    enterDemoMode();
+    navigate('/dashboard');
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -19,7 +27,7 @@ export function Landing() {
           <nav className="hidden md:flex items-center gap-6 lg:gap-8">
             <Link to="/dashboard" className="font-medium text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
             <Link to="/recommendations" className="font-medium text-muted-foreground hover:text-foreground transition-colors">Cost Analysis</Link>
-            <span className="font-medium text-muted-foreground">Savings</span>
+            <Link to="/simulator" className="font-medium text-muted-foreground hover:text-foreground transition-colors">Savings</Link>
           </nav>
 
           {/* Desktop Actions */}
@@ -72,7 +80,13 @@ export function Landing() {
               >
                 Cost Analysis
               </Link>
-              <span className="px-3 py-2 font-medium text-muted-foreground">Savings</span>
+              <Link
+                to="/simulator"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded-md font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                Savings
+              </Link>
               <div className="h-px bg-border my-2" />
               <Link
                 to="/login"
@@ -114,12 +128,12 @@ export function Landing() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <Link
-                to="/dashboard"
+              <button
+                onClick={handleTryDemo}
                 className="px-6 sm:px-8 py-3 sm:py-4 rounded-md font-semibold text-center transition-all bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 Try Demo
-              </Link>
+              </button>
               <button className="px-6 sm:px-8 py-3 sm:py-4 font-semibold underline text-muted-foreground hover:text-foreground transition-colors">
                 View Pricing
               </button>

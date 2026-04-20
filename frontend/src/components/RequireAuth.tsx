@@ -3,9 +3,9 @@ import { useAuth } from '../hooks/useAuth';
 import type { ReactNode } from 'react';
 
 export function RequireAuth({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isDemoMode } = useAuth();
 
-  if (isLoading) {
+  if (isLoading && !isDemoMode) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -16,7 +16,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isDemoMode) {
     return <Navigate to="/login" replace />;
   }
 

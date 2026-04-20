@@ -1,18 +1,19 @@
 """Account management: register and manage multiple AWS accounts."""
 from datetime import datetime
 from uuid import uuid4
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 
 from app.models.account import AWSAccountCreate, AWSAccount
 from app.services.key_vault import KeyVaultService
 from app.storage.blob_client import BlobStorageClient
+from app.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/api/accounts", tags=["accounts"])
 
 
 @router.post("", response_model=AWSAccount)
-async def register_account(account_create: AWSAccountCreate) -> AWSAccount:
+async def register_account(account_create: AWSAccountCreate, _: dict = Depends(get_current_user)) -> AWSAccount:
     """
     Register a new AWS account by storing credentials in Key Vault
     and metadata in Blob Storage.
@@ -55,7 +56,7 @@ async def register_account(account_create: AWSAccountCreate) -> AWSAccount:
 
 
 @router.get("", response_model=list[AWSAccount])
-async def list_accounts() -> list[AWSAccount]:
+async def list_accounts(_: dict = Depends(get_current_user)) -> list[AWSAccount]:
     """
     List all registered AWS accounts (metadata only, no credentials).
 
@@ -74,7 +75,7 @@ async def list_accounts() -> list[AWSAccount]:
 
 
 @router.get("/{account_id}", response_model=AWSAccount)
-async def get_account(account_id: str) -> AWSAccount:
+async def get_account(account_id: str, _: dict = Depends(get_current_user)) -> AWSAccount:
     """
     Retrieve a single AWS account's metadata.
 
@@ -100,7 +101,7 @@ async def get_account(account_id: str) -> AWSAccount:
 
 
 @router.patch("/{account_id}/credentials")
-async def update_account_credentials(account_id: str, credentials: AWSAccountCreate) -> dict:
+async def update_account_credentials(account_id: str, credentials: AWSAccountCreate, _: dict = Depends(get_current_user)) -> dict:
     """
     Update AWS credentials for an existing account.
 
@@ -132,7 +133,7 @@ async def update_account_credentials(account_id: str, credentials: AWSAccountCre
 
 
 @router.delete("/{account_id}")
-async def delete_account(account_id: str) -> dict:
+async def delete_account(account_id: str, _: dict = Depends(get_current_user)) -> dict:
     """
     Delete a registered AWS account.
 

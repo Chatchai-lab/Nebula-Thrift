@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { RefreshCw, Unplug, Trash2, Bell, AlertTriangle, BarChart2, Sparkles, Edit2, Check, X } from 'lucide-react';
+import { RefreshCw, Unplug, Trash2, Bell, AlertTriangle, BarChart2, Sparkles } from 'lucide-react';
 import { useAccount } from '../hooks/useAccount';
+import { useAuth } from '../hooks/useAuth';
 import { useNotificationSettings } from '../hooks/useNotificationSettings';
 import { api } from '../services/api';
 import { Switch } from '../components/ui/switch';
@@ -12,20 +13,16 @@ import { Button } from '../components/ui/button';
 
 export function Settings() {
   const navigate = useNavigate();
-  const { isConnected, accountId, accountName, region, lastSynced, disconnect, setLastSynced, updateEmail, email } = useAccount();
+  const { user, isDemoMode } = useAuth();
+  const { isConnected, accountId, accountName, region, lastSynced, disconnect, setLastSynced } = useAccount();
   const { settings, toggle } = useNotificationSettings();
 
   const [syncing, setSyncing] = useState(false);
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUpdateCredentials, setShowUpdateCredentials] = useState(false);
-  const [editingEmail, setEditingEmail] = useState(false);
-  const [emailDraft, setEmailDraft] = useState(email ?? '');
   const [credentialsDraft, setCredentialsDraft] = useState({ accessKeyId: '', secretKey: '' });
   const [updatingCredentials, setUpdatingCredentials] = useState(false);
-
-  // Sync Account email to Notification settings when Account email changes
-  const notificationEmail = email || '';
 
   async function handleSync() {
     if (!accountId) return;
@@ -56,12 +53,6 @@ export function Settings() {
     setShowDeleteConfirm(false);
     handleDisconnect();
     toast.success('Account deleted');
-  }
-
-  function handleSaveEmail() {
-    updateEmail(emailDraft);
-    setEditingEmail(false);
-    toast.success('Email updated');
   }
 
   async function handleUpdateCredentials() {
@@ -154,10 +145,10 @@ export function Settings() {
             </button>
           ) : (
             <button
-              onClick={() => navigate('/onboarding')}
+              onClick={() => navigate(isDemoMode ? '/register' : '/onboarding')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all"
             >
-              Connect AWS Account →
+              {isDemoMode ? 'Sign Up to Connect AWS →' : 'Connect AWS Account →'}
             </button>
           )}
           {isConnected && (
@@ -225,7 +216,7 @@ export function Settings() {
           <div className="pt-2 border-t border-border">
             <label className="block text-xs text-muted-foreground mb-2">Notification Email</label>
             <p className="text-sm text-foreground font-medium">
-              {notificationEmail || 'Not set — add email in Account section'}
+              {user?.email || 'Not set'}
             </p>
           </div>
         </div>
@@ -237,49 +228,11 @@ export function Settings() {
         <div className="space-y-3 mb-6">
           <div>
             <label className="block text-xs text-muted-foreground mb-1">Name</label>
-            <p className="text-sm text-foreground font-medium">{accountName ?? 'Unknown'}</p>
+            <p className="text-sm text-foreground font-medium">{user?.name ?? 'Unknown'}</p>
           </div>
           <div>
             <label className="block text-xs text-muted-foreground mb-1">Email</label>
-            {editingEmail ? (
-              <div className="flex gap-2 mt-2">
-                <Input
-                  type="email"
-                  value={emailDraft}
-                  onChange={(e) => setEmailDraft(e.target.value)}
-                  placeholder="you@example.com"
-                  className="flex-1 text-sm"
-                />
-                <button
-                  onClick={handleSaveEmail}
-                  className="flex items-center gap-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all"
-                >
-                  <Check className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => {
-                    setEditingEmail(false);
-                    setEmailDraft(email ?? '');
-                  }}
-                  className="flex items-center gap-1 px-3 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-all"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-foreground font-medium">{email || 'Not set'}</p>
-                <button
-                  onClick={() => {
-                    setEditingEmail(true);
-                    setEmailDraft(email ?? '');
-                  }}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+            <p className="text-sm text-foreground font-medium">{user?.email ?? 'Not set'}</p>
           </div>
         </div>
         <button

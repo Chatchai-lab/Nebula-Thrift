@@ -3,13 +3,16 @@ import { router } from './routes';
 import { ThemeProvider } from './hooks/useTheme';
 import { AccountProvider } from './hooks/useAccount';
 import { AuthProvider } from './hooks/useAuth';
+import { NotificationProvider } from './hooks/useNotificationSettings';
 
 export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
         <AccountProvider>
-          <RouterProvider router={router} />
+          <NotificationProvider>
+            <RouterProvider router={router} />
+          </NotificationProvider>
         </AccountProvider>
       </AuthProvider>
     </ThemeProvider>
