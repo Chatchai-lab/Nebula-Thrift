@@ -45,9 +45,10 @@ export interface ConnectionStatusResponse extends ConnectionInfo {
 // AWS Account Registration & Management
 export interface AWSAccountCreate {
   name: string;
-  access_key_id: string;
-  secret_access_key: string;
   region: string;
+  access_key_id?: string;
+  secret_access_key?: string;
+  role_arn?: string;
 }
 
 export interface AWSAccount {

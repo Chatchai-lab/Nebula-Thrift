@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import snapshots, accounts, costs, recommendations, resources
+from app.routers import auth, snapshots, accounts, costs, recommendations, resources
 
 app = FastAPI(
     title="Nebula Thrift API",
@@ -17,6 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(snapshots.router)
 app.include_router(accounts.router)
 app.include_router(costs.router)

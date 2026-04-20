@@ -14,6 +14,7 @@ const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8000',
   timeout: 10_000,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true, // Send cookies with requests
 });
 
 export const api = {
@@ -65,4 +66,17 @@ export const api = {
     client
       .post<SnapshotResponse>('/api/snapshots/save', null, { params: { account_id: accountId, days } })
       .then((r) => r.data),
+
+  // Authentication
+  register: (data: { name: string; email: string; password: string }) =>
+    client.post('/api/auth/register', data).then((r) => r.data),
+
+  login: (data: { email: string; password: string }) =>
+    client.post('/api/auth/login', data).then((r) => r.data),
+
+  logout: () =>
+    client.post('/api/auth/logout').then((r) => r.data),
+
+  getCurrentUser: () =>
+    client.get('/api/auth/me').then((r) => r.data),
 };

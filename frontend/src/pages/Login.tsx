@@ -1,20 +1,43 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Zap } from 'lucide-react';
+import { Zap, AlertCircle } from 'lucide-react';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { useAuth } from '../hooks/useAuth';
 
 export function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   function handleGoogleSignIn() {
     toast.info('Google Sign-In coming soon — use demo for now');
   }
 
-  function handleSignIn(e: React.FormEvent) {
+  async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
-    toast.info('Auth coming soon — use demo for now');
+    setError('');
+
+    if (!email || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await login(email, password);
+      toast.success('Logged in successfully!');
+      navigate('/dashboard');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Login failed. Please try again.';
+      setError(message);
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -74,6 +97,14 @@ export function Login() {
             </div>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex gap-2 mb-4">
+              <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+
           {/* Email/Password Form */}
           <form onSubmit={handleSignIn} className="space-y-4">
             <div>
@@ -85,8 +116,9 @@ export function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
                 placeholder="you@example.com"
-                className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm"
+                className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm disabled:opacity-50"
               />
             </div>
             <div>
@@ -98,15 +130,17 @@ export function Login() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
                 placeholder="••••••••"
-                className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm"
+                className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm disabled:opacity-50"
               />
             </div>
             <button
               type="submit"
-              className="w-full py-2.5 px-4 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-all"
+              disabled={isLoading}
+              className="w-full py-2.5 px-4 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 disabled:opacity-60 transition-all"
             >
-              Sign In
+              {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
         </div>

@@ -2,8 +2,13 @@
 fastapi==0.115.0
 uvicorn==0.30.0
 pydantic==2.7.0
+pydantic[email]>=2.7.0     # EmailStr support
 python-dotenv==1.0.0
 mangum==0.17.0
+
+# Authentication & Security
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.0
 
 # Azure Functions
 azure-functions>=1.18.0

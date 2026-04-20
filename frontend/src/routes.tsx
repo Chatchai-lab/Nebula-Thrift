@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
-import { Layout } from './components/Layout';
+import { ProtectedLayout } from './components/ProtectedLayout';
+import { ProtectedOnboarding } from './components/ProtectedOnboarding';
 
 const Landing = lazy(() =>
   import('./pages/Landing').then(({ Landing }) => ({ default: Landing }))
@@ -51,22 +52,22 @@ export const router = createBrowserRouter([
       },
       {
         path: 'dashboard',
-        Component: Layout,
+        Component: ProtectedLayout,
         children: [{ index: true, Component: withSuspense(Dashboard) }],
       },
       {
         path: 'recommendations',
-        Component: Layout,
+        Component: ProtectedLayout,
         children: [{ index: true, Component: withSuspense(Recommendations) }],
       },
       {
         path: 'simulator',
-        Component: Layout,
+        Component: ProtectedLayout,
         children: [{ index: true, Component: withSuspense(Simulator) }],
       },
       {
         path: 'settings',
-        Component: Layout,
+        Component: ProtectedLayout,
         children: [{ index: true, Component: withSuspense(Settings) }],
       },
       {
@@ -79,7 +80,8 @@ export const router = createBrowserRouter([
       },
       {
         path: 'onboarding',
-        Component: withSuspense(Onboarding),
+        Component: ProtectedOnboarding,
+        children: [{ index: true, Component: withSuspense(Onboarding) }],
       },
     ],
   },
